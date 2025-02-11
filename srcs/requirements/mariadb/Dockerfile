@@ -14,7 +14,7 @@ COPY conf/my.cnf /etc/mysql/my.cnf
 COPY tools/setup.sh /docker-entrypoint-initdb.d/setup.sh
 RUN chmod +x /docker-entrypoint-initdb.d/setup.sh
 
-# Copie un script d'initialisation pour la gestion des permissions
+# Copies an initialization script for permissions management:
 COPY tools/init.sh /usr/local/bin/init.sh
 RUN chmod +x /usr/local/bin/init.sh
 
