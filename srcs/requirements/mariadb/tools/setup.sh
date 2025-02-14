@@ -1,5 +1,10 @@
 #!/bin/sh
 
+if [ -f "/var/lib/mysql/.setup_done" ]; then
+    echo "🟢 MariaDB setup already done, skipping initialization."
+    exit 0
+fi
+
 # Waits until MariaDB is ready:
 echo "⌛ Waiting for MariaDB to start..."
 
@@ -36,6 +41,7 @@ mysql -u root -p"$MYSQL_ROOT_PASSWORD" -e "FLUSH PRIVILEGES;"
 
 if [ $? -eq 0 ]; then
     echo "✅ Database and user setup complete."
+    touch /var/lib/mysql/.setup_done
 else
     echo "❌ Error setting up database and users." >&2
     exit 1

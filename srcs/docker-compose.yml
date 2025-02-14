@@ -1,0 +1,61 @@
+services:
+  mariadb:
+    image: mariadb
+    container_name: mariadb
+    build: ./requirements/mariadb
+    restart: always
+    env_file: ./.env
+    volumes:
+      - database:/var/lib/mysql
+    networks:
+      - inception
+    healthcheck:
+      test: ["CMD-SHELL", "mariadb-admin ping -h localhost || exit 1"]
+      interval: 10s
+      retries: 10
+      start_period: 20s
+  wordpress:
+    image: wordpress
+    container_name: wordpress
+    build: ./requirements/wordpress
+    restart: always
+    env_file: ./.env
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    volumes:
+      - website:/var/www/html
+    networks:
+      - inception
+  nginx:
+    image: nginx
+    container_name: nginx
+    build: ./requirements/nginx
+    restart: always
+    ports:
+      - "443:443"
+      - "80:80"
+    depends_on:
+      - wordpress
+    volumes:
+      - website:/var/www/html
+    networks:
+      - inception
+
+networks:
+  inception:
+    driver: bridge
+
+volumes:
+  database:
+    driver: local
+    driver_opts:
+      type: none
+      device: /home/aheitz/data/mariadb
+      o: bind
+  website:
+    driver: local
+    driver_opts:
+      type: none
+      device: /home/aheitz/data/wordpress
+      o: bind

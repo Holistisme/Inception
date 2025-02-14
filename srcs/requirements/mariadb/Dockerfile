@@ -7,6 +7,10 @@ LABEL maintainer="aheitz <aheitz@student.42mulhouse.fr>"
 # Updating and installing MariaDB:
 RUN apt-get update && apt-get install -y mariadb-server mariadb-client gosu && rm -rf /var/lib/apt/lists/*
 
+RUN mkdir -p /var/lib/mysql /run/mysqld /var/log
+RUN chown -R mysql:mysql /var/lib/mysql /run/mysqld /var/log
+RUN chmod -R 700 /var/lib/mysql
+
 # Copies the MariaDB configuration file:
 COPY conf/my.cnf /etc/mysql/my.cnf
 
@@ -22,4 +26,4 @@ RUN chmod +x /usr/local/bin/init.sh
 EXPOSE 3306
 
 # Default command (ensures MariaDB starts properly):
-CMD ["/usr/local/bin/init.sh"]
+ENTRYPOINT [ "/usr/local/bin/init.sh" ]
