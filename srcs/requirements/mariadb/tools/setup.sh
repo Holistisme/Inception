@@ -5,7 +5,6 @@ if [ -f "/var/lib/mysql/.setup_done" ]; then
     exit 0
 fi
 
-# Waits until MariaDB is ready:
 echo "⌛ Waiting for MariaDB to start..."
 
 i=0
@@ -21,7 +20,6 @@ done
 
 echo "✅ MariaDB is up and running!"
 
-# Database and user creation:
 echo "⚙️ Configuring database and users..."
 
 echo "🔹 Creating database..."

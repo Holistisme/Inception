@@ -1,26 +1,29 @@
-# The source image for the NGINX service: recovers the second-to-last DEBIAN version (at the time the project was created):
+# 📌 Base image: Debian Bullseye
 FROM debian:bullseye
 
-# A label to source the author of the Dockerfile:
+# 🏷️ Maintainer Information
 LABEL maintainer="aheitz <aheitz@student.42mulhouse.fr>"
 
-# Installs Nginx, OpenSSL, and necessary dependencies:
-RUN apt-get update && apt-get install -y nginx apache2-utils openssl && rm -rf /var/lib/apt/lists/*
+# 📂 Set working directory
+WORKDIR /app
 
-# Deletes all default NGINX configurations to ensure a clean setup:
-RUN rm -rf /etc/nginx/conf.d/*
+# 🔽 Copy all necessary scripts to /usr/local/bin and make them executable
+COPY ./tools/ /usr/local/bin/
+COPY ./conf/default.conf /etc/nginx/sites-available/aheitz.42.fr.conf
 
-# Replaces the NGINX configuration with the project configuration file:
-COPY conf/nginx.conf /etc/nginx/nginx.conf
+RUN set -eux;                                                                                 \
+    chmod +x /usr/local/bin/*.sh;                                                             \
+    /usr/local/bin/install_nginx.sh;                                                          \
+    ln -s /etc/nginx/sites-available/aheitz.42.fr.conf /etc/nginx/sites-enabled/aheitz.42.fr; \
+    /usr/local/bin/setup_ssl.sh;                                                              \
+    ln -sf /dev/stdout /var/log/nginx/access.log;                                             \
+    ln -sf /dev/stderr /var/log/nginx/error.log
 
-# Copies and configures SSL certificate generation script:
-COPY tools/generate_ssl.sh /usr/local/bin/generate_ssl.sh
-RUN chmod 700 /usr/local/bin/generate_ssl.sh
-
-# Opens service on HTTPS port:
+# 🌐 Expose HTTPS port
 EXPOSE 443
 
-# Initiates and runs the service startup script:
-COPY tools/entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+# 🔴 Define a clean shutdown signal for Nginx
+STOPSIGNAL SIGQUIT
+
+# 🚀 Start the container with the custom entrypoint script
+CMD ["/usr/local/bin/entrypoint.sh"]

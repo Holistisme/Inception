@@ -1,4 +1,6 @@
+# 📦 Service definitions
 services:
+  # 🗄️ MariaDB (Database)
   mariadb:
     image: mariadb
     container_name: mariadb
@@ -7,6 +9,8 @@ services:
     env_file: ./.env
     volumes:
       - database:/var/lib/mysql
+    ports:
+      - "3306:3306"
     networks:
       - inception
     healthcheck:
@@ -14,6 +18,8 @@ services:
       interval: 10s
       retries: 10
       start_period: 20s
+
+  # 🌐 WordPress (Web Application)
   wordpress:
     image: wordpress
     container_name: wordpress
@@ -27,25 +33,35 @@ services:
       - website:/var/www/html
     networks:
       - inception
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep php-fpm || exit 1"]
+      interval: 10s
+      retries: 5
+      start_period: 10s
+
+  # 🔒 Nginx (Secure Web Server)
   nginx:
     image: nginx
     container_name: nginx
     build: ./requirements/nginx
     restart: always
-    ports:
-      - "443:443"
-      - "80:80"
+    env_file: ./.env
     depends_on:
-      - wordpress
+      wordpress:
+        condition: service_started
     volumes:
       - website:/var/www/html
+    ports:
+      - "443:443"
     networks:
       - inception
 
+# 🌍 Docker network
 networks:
   inception:
     driver: bridge
 
+# 💾 Volumes for data persistence
 volumes:
   database:
     driver: local

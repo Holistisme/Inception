@@ -1,36 +1,50 @@
-# The source image for the WORDPRESS service: recovers the second-to-last DEBIAN version (at the time the project was created):
+# 📌 Base image: Debian Bullseye
 FROM debian:bullseye
 
-# A label to source the author of the Dockerfile:
+# 🏷️ Maintainer Information
 LABEL maintainer="aheitz <aheitz@student.42mulhouse.fr>"
 
-# Update & install necessary dependencies:
-RUN apt-get update && apt-get install -y lsb-release apt-transport-https ca-certificates gnupg2 wget curl \
+# 📂 Set working directory
+WORKDIR /app
+
+# 🔧 Install required dependencies
+# --------------------------------
+# - `lsb-release`        : Helps manage package repositories dynamically.
+# - `apt-transport-https`: Enables APT package fetching over HTTPS.
+# - `ca-certificates`    : Ensures secure communication.
+# - `curl`               : Needed for fetching external files (e.g., WP-CLI, PHP repo key).
+# - `sury-php`           : Third-party repo for modern PHP versions (e.g., PHP 8.2).
+RUN apt-get update -y && apt-get install -y                                                                          \
+    lsb-release apt-transport-https ca-certificates curl                                                             \
+    && curl -fsSL https://packages.sury.org/php/apt.gpg | tee /etc/apt/trusted.gpg.d/sury-php.gpg > /dev/null        \
     && echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" | tee /etc/apt/sources.list.d/sury-php.list \
-    && wget -qO - https://packages.sury.org/php/apt.gpg | apt-key add - \
-    && apt-get update \
-    && apt-get install -y php8.2 php8.2-fpm php8.2-mysql php8.2-curl php8.2-mbstring php8.2-xml php8.2-gd php8.2-zip \
-    && dpkg -l | grep php \
-    && ls -l /usr/sbin/php-fpm* \
-    && rm -rf /var/lib/apt/lists/* \
-    && mkdir -p /run/php \
-    && sed -i 's|listen = /run/php/php8.2-fpm.sock|listen = 9000|' /etc/php/8.2/fpm/pool.d/www.conf
+    && apt-get update -y
 
-# Download and install WP-CLI:
-RUN curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar \
-    && chmod +x wp-cli.phar \
-    && mv wp-cli.phar /usr/local/bin/wp \
-    && wp --info --allow-root
+# 🏗️ Install PHP, PHP-FPM, MySQL client, and WP-CLI
+# --------------------------------------------------
+# - `php8.2`, `php8.2-fpm`: PHP 8.2 and FastCGI Process Manager (FPM).
+# - `php8.2-mysql`        : MySQL extension for PHP to communicate with MariaDB.
+# - `mariadb-client`      : Allows communication with MariaDB from the container.
+# - `unzip`               : Needed for extracting certain WordPress files/plugins.
+# - `wp-cli`              : WordPress Command Line Interface for easier automation.
+RUN apt-get install -y php8.2 php8.2-fpm php8.2-mysql mariadb-client unzip               \
+    && mkdir -p /run/php                                                                 \
+    && curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar \
+    && chmod +x wp-cli.phar                                                              \
+    && mv wp-cli.phar /usr/local/bin/wp
 
-# Copies the initialization script into the container and makes it executable:
-COPY tools/install_wp.sh /usr/local/bin/install_wp.sh
-RUN chmod +x /usr/local/bin/install_wp.sh
+# 📝 Copy PHP-FPM pool configuration
+# ----------------------------------
+# This configuration optimizes PHP-FPM performance and security.
+COPY ./conf/www.conf /etc/php/8.2/fpm/pool.d/www.conf
 
-# Defines the working folder:
-WORKDIR /var/www/html
+# 🔧 Copy WordPress setup script and set permissions
+# --------------------------------------------------
+# This script automates the WordPress installation/configuration process.
+COPY --chmod=0755 /tools/wp-setup.sh /usr/local/bin
 
-# Exposes the port used by PHP-FPM:
+# 📡 Expose port 9000 for PHP-FPM communication
 EXPOSE 9000
 
-# Default command to start WordPress properly):
-ENTRYPOINT ["/usr/local/bin/install_wp.sh"]
+# 🚀 Set entrypoint to the WordPress setup script
+ENTRYPOINT ["/usr/local/bin/wp-setup.sh"]
