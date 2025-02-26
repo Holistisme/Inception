@@ -1,5 +1,18 @@
 # 📦 Service definitions
 services:
+  # 🐳 PhpMyAdmin (Database Management)
+  adminer:
+    image: adminer
+    container_name: adminer
+    build: ./requirements/bonus/adminer
+    restart: always
+    env_file: ./.env
+    networks:
+      - inception
+    depends_on:
+      mariadb:
+        condition: service_healthy
+
   # 🗄️ MariaDB (Database)
   mariadb:
     image: mariadb

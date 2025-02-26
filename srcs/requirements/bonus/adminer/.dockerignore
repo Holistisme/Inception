@@ -1,0 +1,26 @@
+# Excludes sensitive and local configuration files:
+.env
+secrets/
+*.bak
+*.swp
+*.old
+*.log
+
+# Excludes files from Git:
+.git
+.gitignore
+
+# Excludes temporary and cache files:
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
+Thumbs.db
+
+# Excludes files not required for the build:
+.vscode/
+.idea/
+node_modules/
+vendor/
+tmp/
+.cache/
