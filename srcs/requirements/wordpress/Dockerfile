@@ -27,11 +27,14 @@ RUN apt-get update -y && apt-get install -y                                     
 # - `mariadb-client`      : Allows communication with MariaDB from the container.
 # - `unzip`               : Needed for extracting certain WordPress files/plugins.
 # - `wp-cli`              : WordPress Command Line Interface for easier automation.
-RUN apt-get install -y php8.2 php8.2-fpm php8.2-mysql mariadb-client unzip               \
+RUN apt-get update -y && apt-get install -y                                              \
+    lsb-release apt-transport-https ca-certificates curl unzip vim                       \
+    php8.2 php8.2-fpm php8.2-mysql php8.2-redis mariadb-client                           \
     && mkdir -p /run/php                                                                 \
     && curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar \
     && chmod +x wp-cli.phar                                                              \
-    && mv wp-cli.phar /usr/local/bin/wp
+    && mv wp-cli.phar /usr/local/bin/wp                                                  \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # 📝 Copy PHP-FPM pool configuration
 # ----------------------------------

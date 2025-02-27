@@ -1,5 +1,22 @@
 # 📦 Service definitions
 services:
+  # 🐳 Redis (Cache)
+  redis:
+    image: redis
+    container_name: redis
+    build: ./requirements/bonus/redis
+    restart: always
+    env_file: ./.env
+    volumes:
+      - cache:/data
+    networks:
+      - inception
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      retries: 3
+      start_period: 5s
+
   # 🐳 PhpMyAdmin (Database Management)
   adminer:
     image: adminer
@@ -41,6 +58,8 @@ services:
     env_file: ./.env
     depends_on:
       mariadb:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     volumes:
       - website:/var/www/html
@@ -87,4 +106,10 @@ volumes:
     driver_opts:
       type: none
       device: /home/aheitz/data/wordpress
+      o: bind
+  cache:
+    driver: local
+    driver_opts:
+      type: none
+      device: /home/aheitz/data/redis
       o: bind

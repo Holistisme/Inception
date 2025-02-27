@@ -44,5 +44,22 @@ else
         --user_pass="$WP_USER_PASSWORD" --role=author --porcelain
 fi
 
+echo "🔧 Fixing file permissions..."
+chown -R www-data:www-data /var/www/html/wordpress
+chmod -R 755 /var/www/html/wordpress
+
+echo "✅ Configuring Redis in wp-config.php..."
+wp config set WP_REDIS_HOST redis --allow-root
+wp config set WP_REDIS_PORT 6379 --allow-root --raw
+wp config set WP_REDIS_PASSWORD $REDIS_PASSWORD --allow-root
+wp config set WP_REDIS_DATABASE 0 --allow-root --raw
+wp config set WP_REDIS_CLIENT phpredis --allow-root
+wp config set WP_CACHE true --allow-root --raw
+
+echo "✅ Installing and enabling Redis Cache plugin..."
+wp plugin install redis-cache --activate --allow-root
+wp plugin update --all --allow-root
+wp redis enable --allow-root
+
 echo "🚀 Starting PHP-FPM 8.2..."
 exec php-fpm8.2 -F
