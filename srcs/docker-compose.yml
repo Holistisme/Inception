@@ -1,5 +1,17 @@
 # 📦 Service definitions
 services:
+  # 🐳 Static Site
+  static_site:
+    image: static_site
+    container_name: static_site
+    build: ./requirements/bonus/static_site
+    restart: always
+    env_file: ./.env
+    ports:
+      - "444:443"
+    networks:
+      - inception
+
   # 🐳 FTP (File Transfer Protocole)
   ftp:
     image: ftp
