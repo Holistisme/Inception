@@ -1,29 +1,29 @@
-# 📌 Base image: Debian Bullseye
+###############################################################################
+# Dockerfile for MariaDB setup (Debian Bullseye)
+###############################################################################
 FROM debian:bullseye
 
-# 🏷️ Maintainer Information
 LABEL maintainer="aheitz <aheitz@student.42mulhouse.fr>"
 
-# 🔧 One-step installation of the necessary packages
-RUN apt-get update && \
-    apt-get install -y mariadb-server mariadb-client gosu && \
-    rm -rf /var/lib/apt/lists/* /tmp/*
+# Install MariaDB server, client, and gosu (for privilege dropping)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    mariadb-server mariadb-client gosu && rm -rf /var/lib/apt/lists/* /tmp/*
 
-# 📂 Directory configuration and permissions
-RUN mkdir -p /var/lib/mysql /run/mysqld /var/log/mysql && \
-    chown -R mysql:mysql /var/lib/mysql /run/mysqld /var/log/mysql && \
-    chmod 755 /run/mysqld
+# Create essential directories, set ownership and permissions
+RUN mkdir -p /var/lib/mysql /run/mysqld /var/log/mysql                \
+    && chown -R mysql:mysql /var/lib/mysql /run/mysqld /var/log/mysql \
+    && chmod 755 /run/mysqld
 
-# 📜 Copy MariaDB configuration
-COPY conf/my.cnf /etc/mysql/my.cnf
-
-# 📜 Copy and authorize initialization scripts
+# Copy configuration and initialization scripts
+COPY conf/my.cnf    /etc/mysql/my.cnf
 COPY tools/setup.sh /docker-entrypoint-initdb.d/setup.sh
-COPY tools/init.sh /usr/local/bin/init.sh
+COPY tools/init.sh  /usr/local/bin/init.sh
+
+# Ensure scripts are executable
 RUN chmod +x /docker-entrypoint-initdb.d/setup.sh /usr/local/bin/init.sh
 
-# 🚪 Expose MariaDB port
+# Expose the default MariaDB port
 EXPOSE 3306
 
-# 🚀 Input command
-ENTRYPOINT [ "/usr/local/bin/init.sh" ]
+# Use a custom entrypoint script to start MariaDB
+ENTRYPOINT ["/usr/local/bin/init.sh"]
