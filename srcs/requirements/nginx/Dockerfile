@@ -1,16 +1,20 @@
-# 📌 Base image: Debian Bullseye
+###############################################################################
+# Dockerfile for NGINX-based service (Debian Bullseye)
+###############################################################################
 FROM debian:bullseye
 
-# 🏷️ Maintainer Information
 LABEL maintainer="aheitz <aheitz@student.42mulhouse.fr>"
 
-# 📂 Set working directory
+# Set working directory for the container
 WORKDIR /app
 
-# 🔽 Copy all necessary scripts to /usr/local/bin and make them executable
-COPY ./tools/ /usr/local/bin/
+# Copy scripts and the default NGINX configuration
+COPY ./tools/            /usr/local/bin/
 COPY ./conf/default.conf /etc/nginx/sites-available/aheitz.42.fr.conf
 
+###############################################################################
+# Installation and setup steps
+###############################################################################
 RUN set -eux;                                                                                 \
     chmod +x /usr/local/bin/*.sh;                                                             \
     /usr/local/bin/install_nginx.sh;                                                          \
@@ -19,11 +23,11 @@ RUN set -eux;                                                                   
     ln -sf /dev/stdout /var/log/nginx/access.log;                                             \
     ln -sf /dev/stderr /var/log/nginx/error.log
 
-# 🌐 Expose HTTPS port
+# Expose HTTPS port
 EXPOSE 443
 
-# 🔴 Define a clean shutdown signal for Nginx
+# Graceful stop signal for NGINX
 STOPSIGNAL SIGQUIT
 
-# 🚀 Start the container with the custom entrypoint script
+# Set the default command to run when container starts
 CMD ["/usr/local/bin/entrypoint.sh"]
