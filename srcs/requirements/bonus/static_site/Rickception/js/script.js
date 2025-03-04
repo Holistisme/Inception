@@ -1,8 +1,9 @@
 // script.js for Rickception Static Site
-// This script enhances the user experience by animating the header, paragraphs, and video container
+// This script enhances the user experience by animating the header, paragraphs, and video container,
+// and automatically increments the Rickroll counter on each page load.
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Select the header element (h1) and animate it with a fade-in and zoom effect
+  // Animate header (h1) with fade-in and zoom effect
   const header = document.querySelector('h1');
   if (header) {
     header.style.opacity = 0;                                               // Start hidden
@@ -14,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 500);                                                                // Delay of 500ms before starting the animation
   }
 
-  // Select all paragraph elements and animate them with a staggered fade-in and slide-up effect
+  // Animate paragraphs with a staggered fade-in and slide-up effect
   const paragraphs = document.querySelectorAll('p');
   paragraphs.forEach((p, index) => {
     p.style.opacity = 0;                                               // Start hidden
@@ -26,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 700 + index * 300);                                             // Stagger each paragraph's animation
   });
 
-  // Select the video container element and animate it with a fade-in and slight rotation effect
+  // Animate the video container with fade-in and slight rotation effect
   const videoContainer = document.querySelector('.video-container');
   if (videoContainer) {
     videoContainer.style.opacity = 0;                                               // Start hidden
@@ -37,6 +38,18 @@ document.addEventListener('DOMContentLoaded', () => {
       videoContainer.style.transform = 'rotate(0deg)';                              // Rotate to normal (0deg)
     }, 1000);                                                                       // Delay of 1000ms before starting the animation
   }
+
+  // Automatically trigger the Rickroll counter on page load by calling /rickroll.
+  // This increments the counter each time the page is refreshed.
+  fetch('https://${IP_ADDRESS}:3001/rickroll?cacheBuster=' + Date.now())
+    .then(response => response.text())
+    .then(data => {
+      const counterElem = document.getElementById('counter');
+      if (counterElem) {
+        counterElem.innerText = data;
+      }
+    })
+    .catch(error => console.error('Error fetching counter:', error));
 
   // Log a welcoming message in the browser console
   console.log('Rickception loaded. Prepare to be Rickrolled!');

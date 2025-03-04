@@ -1,5 +1,20 @@
 # 📦 Service definitions
 services:
+  # 🐳 Ricounter (Additional service)
+  rickroll_counter:
+    image: rickroll_counter
+    container_name: rickroll_counter
+    build:
+      context: ./requirements/bonus/rickroll_counter
+    restart: always
+    env_file: ./.env
+    ports:
+      - "3001:3000"
+    networks:
+      - inception
+    volumes:
+      - "counter:/app"
+
   # 🐳 Static Site
   static_site:
     image: static_site
@@ -143,4 +158,10 @@ volumes:
     driver_opts:
       type: none
       device: /home/aheitz/data/redis
+      o: bind
+  counter:
+    driver: local
+    driver_opts:
+      type: none
+      device: /home/aheitz/data/rickroll_counter
       o: bind
