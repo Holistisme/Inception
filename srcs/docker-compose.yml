@@ -1,167 +1,214 @@
-# 📦 Service definitions
+###############################################################################
+#                        DOCKER-COMPOSE CONFIGURATION
+###############################################################################
+# This file defines and orchestrates multiple services using Docker Compose.
+# Each service runs in a dedicated container, with environment variables
+# defined in an external .env file to keep sensitive data secure.
+###############################################################################
+
 services:
-  # 🐳 Ricounter (Additional service)
-  rickroll_counter:
-    image: rickroll_counter
-    container_name: rickroll_counter
-    build:
-      context: ./requirements/bonus/rickroll_counter
-    restart: always
-    env_file: ./.env
-    ports:
-      - "3001:3000"
-    networks:
-      - inception
-    volumes:
-      - "counter:/app"
-
-  # 🐳 Static Site
-  static_site:
-    image: static_site
-    container_name: static_site
-    build: ./requirements/bonus/static_site
-    restart: always
-    env_file: ./.env
-    ports:
-      - "444:443"
-    networks:
-      - inception
-
-  # 🐳 FTP (File Transfer Protocole)
-  ftp:
-    image: ftp
-    container_name: ftp
-    build:
-      context: ./requirements/bonus/ftp
-    restart: always
-    env_file: ./.env
+  #############################################################################
+  # 1) NGINX - Handles incoming requests (HTTPS only).
+  #############################################################################
+  nginx:
+    image:          nginx
+    container_name: nginx
+    build:          ./requirements/nginx
+    env_file:       ./.env
+    restart:        always
     depends_on:
       wordpress:
-        condition: service_started
-    ports:
-      - "21:21"
-      - "21000-21010:21000-21010"
-    volumes:
-      - "website:/var/www/html"
-    networks:
-      - inception
-  
-  # 🐳 Redis (Cache)
-  redis:
-    image: redis
-    container_name: redis
-    build: ./requirements/bonus/redis
-    restart: always
-    env_file: ./.env
-    volumes:
-      - cache:/data
-    networks:
-      - inception
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      retries: 3
-      start_period: 5s
-
-  # 🐳 PhpMyAdmin (Database Management)
-  adminer:
-    image: adminer
-    container_name: adminer
-    build: ./requirements/bonus/adminer
-    restart: always
-    env_file: ./.env
-    networks:
-      - inception
-    depends_on:
-      mariadb:
         condition: service_healthy
-
-  # 🗄️ MariaDB (Database)
-  mariadb:
-    image: mariadb
-    container_name: mariadb
-    build: ./requirements/mariadb
-    restart: always
-    env_file: ./.env
-    volumes:
-      - database:/var/lib/mysql
     ports:
-      - "3306:3306"
-    networks:
-      - inception
+      - "443:443"               # Exposes HTTPS on port 443
     healthcheck:
-      test: ["CMD-SHELL", "mariadb-admin ping -h localhost || exit 1"]
-      interval: 10s
-      retries: 10
-      start_period: 20s
+      test:         ["CMD-SHELL", "pgrep nginx || exit 1"]
+      interval:     10s
+      retries:      3
+      start_period: 10s
+    volumes:
+      - website:/var/www/html   # Mount the shared website volume for serving WordPress files
+    networks:
+      - rickwork
 
-  # 🌐 WordPress (Web Application)
+  #############################################################################
+  # 2) MARIADB - MySQL-compatible database server.
+  #############################################################################
+  mariadb:
+    image:          mariadb
+    container_name: mariadb
+    build:          ./requirements/mariadb
+    env_file:       ./.env
+    restart:        always
+    ports:
+      - "3306:3306"               # Exposes the MySQL/MariaDB port if remote access is needed
+    healthcheck:
+      test:         ["CMD-SHELL", "mariadb-admin ping -h localhost || exit 1"]
+      interval:     10s
+      retries:      3
+      start_period: 10s
+    volumes:
+      - database:/var/lib/mysql   # Persists the database data on the host
+    networks:
+      - rickwork
+
+  #############################################################################
+  # 3) WORDPRESS - CMS powered by PHP-FPM.
+  #############################################################################
   wordpress:
-    image: wordpress
+    image:          wordpress
     container_name: wordpress
-    build: ./requirements/wordpress
-    restart: always
-    env_file: ./.env
+    build:          ./requirements/wordpress
+    env_file:       ./.env
+    restart:        always
     depends_on:
       mariadb:
         condition: service_healthy
       redis:
         condition: service_healthy
-    volumes:
-      - website:/var/www/html
-    networks:
-      - inception
     healthcheck:
-      test: ["CMD-SHELL", "pgrep php-fpm || exit 1"]
-      interval: 10s
-      retries: 5
+      test:         ["CMD-SHELL", "pgrep php-fpm || exit 1"]
+      interval:     10s
+      retries:      3
       start_period: 10s
-
-  # 🔒 Nginx (Secure Web Server)
-  nginx:
-    image: nginx
-    container_name: nginx
-    build: ./requirements/nginx
-    restart: always
-    env_file: ./.env
-    depends_on:
-      wordpress:
-        condition: service_started
     volumes:
-      - website:/var/www/html
-    ports:
-      - "443:443"
+      - website:/var/www/html   # Shares the same volume as nginx for WordPress files
     networks:
-      - inception
+      - rickwork
 
-# 🌍 Docker network
-networks:
-  inception:
-    driver: bridge
+  #############################################################################
+  # 4) REDIS - Caching service to improve WordPress performance.
+  #############################################################################
+  redis:
+    image:          redis
+    container_name: redis
+    build:          ./requirements/bonus/redis
+    env_file:       ./.env
+    restart:        always
+    healthcheck:
+      test:         ["CMD", "redis-cli", "ping"]
+      interval:     10s
+      retries:      3
+      start_period: 10s
+    volumes:
+      - cache:/data
+    networks:
+      - rickwork
 
-# 💾 Volumes for data persistence
+  #############################################################################
+  # 5) FTP - Provides FTP access to the WordPress volume.
+  #############################################################################
+  ftp:
+    image:          ftp
+    container_name: ftp
+    build:          ./requirements/bonus/ftp
+    env_file:       ./.env
+    restart:        always
+    ports:
+      - "21:21"                     # FTP control port
+      - "21000-21010:21000-21010"   # Passive mode ports
+    healthcheck:
+      test:         ["CMD-SHELL", "pgrep vsftpd || exit 1"]
+      interval:     10s
+      retries:      3
+      start_period: 10s
+    volumes:
+      - "website:/var/www/html"     # Shares the same volume to manage website files
+    networks:
+      - rickwork
+
+  #############################################################################
+  # 6) STATIC_SITE - Serves a separate static website (non-PHP).
+  #############################################################################
+  static_site:
+    image:          static_site
+    container_name: static_site
+    build:          ./requirements/bonus/static_site
+    env_file:       ./.env
+    restart:        always
+    ports:
+      - "444:443"   # HTTPS on an alternative port
+    healthcheck:
+      test:         ["CMD-SHELL", "curl -fk https://localhost || exit 1"]
+      interval:     10s
+      retries:      3
+      start_period: 10s
+    networks:
+      - rickwork
+
+  #############################################################################
+  # 7) ADMINER - Lightweight web interface for managing MariaDB.
+  #############################################################################
+  adminer:
+    image:          adminer
+    container_name: adminer
+    build:          ./requirements/bonus/adminer
+    env_file:       ./.env
+    restart:        always
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    healthcheck:
+      test:         ["CMD-SHELL", "curl -f http://localhost || exit 1"]
+      interval:     10s
+      retries:      3
+      start_period: 10s
+    networks:
+      - rickwork
+
+  #############################################################################
+  # 8) RICOUNTER - Custom service (a basic counter with Node.js app).
+  #############################################################################
+  ricounter:
+    image:          ricounter
+    container_name: ricounter
+    build:          ./requirements/bonus/ricounter
+    env_file:       ./.env
+    restart:        always
+    ports:
+      - "3001:3000"     # Exposes the service on port 3001
+    healthcheck:
+      test:         ["CMD-SHELL", "curl -f http://localhost:3000 || exit 1"]
+      interval:     10s
+      retries:      3
+      start_period: 10s
+    volumes:
+      - "counter:/app"  # Stores data related to the custom service
+    networks:
+      - rickwork
+
+###############################################################################
+#                                 VOLUMES
+###############################################################################
 volumes:
   database:
     driver: local
     driver_opts:
-      type: none
+      type:   none
       device: /home/aheitz/data/mariadb
-      o: bind
+      o:      bind
   website:
     driver: local
     driver_opts:
-      type: none
+      type:   none
       device: /home/aheitz/data/wordpress
-      o: bind
+      o:      bind
   cache:
     driver: local
     driver_opts:
-      type: none
+      type:   none
       device: /home/aheitz/data/redis
-      o: bind
+      o:      bind
   counter:
     driver: local
     driver_opts:
-      type: none
-      device: /home/aheitz/data/rickroll_counter
-      o: bind
+      type:   none
+      device: /home/aheitz/data/ricounter
+      o:      bind
+
+###############################################################################
+#                                NETWORK
+###############################################################################
+networks:
+  rickwork:
+    driver: bridge
