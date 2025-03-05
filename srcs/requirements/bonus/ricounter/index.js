@@ -1,35 +1,36 @@
-// Import required modules
-const express = require('express'); // Express framework for creating the web server
-const https   = require('https');   // Module to create HTTPS server
-const fs      = require('fs');      // File system module to read certificate files
+/******************************************************************************
+ * A Node.js/Express service that manages a Rickroll counter over HTTPS.
+ * - Serves static files from /public.
+ * - Maintains a counter in a text file.
+ * - Provides endpoints for triggering and viewing the counter.
+ ******************************************************************************/
+const express = require('express');
+const https   = require('https');
+const fs      = require('fs');
 const path    = require('path');
 
-// Create an Express application
-const app = express();
-// Set the port from environment variable PORT or default to 3000
+const app  = express();
 const port = process.env.PORT || 3000;
 
-// Enable serving static files from the "public" directory
+// Serve any static files in /public
 app.use(express.static('public'));
 
-// Middleware to enable CORS for all incoming requests
-// This allows the service to be accessed from any origin
+// Allow CORS for demonstration purposes
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
   next();
 });
 
-// Options for the HTTPS server: read the SSL certificate and key from disk
-// These files should be located in /app/ssl inside the container
+// SSL key/cert paths
 const options = {
-  key:  fs.readFileSync('/app/ssl/server.key'), // Private key for SSL
-  cert: fs.readFileSync('/app/ssl/server.crt')  // SSL certificate
+  key:  fs.readFileSync('/app/ssl/server.key'),
+  cert: fs.readFileSync('/app/ssl/server.crt')
 };
 
-// The path to the file containing the number of rolls.
+// File where the counter is stored
 const counterFilePath = path.join(__dirname, 'counter.txt');
 
-// Function to load the counter value from file, defaulting to 0 if not present
+// Load the current counter from disk
 function loadCounter() {
   try {
     const data = fs.readFileSync(counterFilePath, 'utf8');
@@ -39,16 +40,14 @@ function loadCounter() {
   }
 }
 
-// Function to save the counter value to file
+// Save the counter value to disk
 function saveCounter(value) {
   fs.writeFileSync(counterFilePath, value.toString());
 }
 
-// Variable for counting rolls.
 let rickrollCount = loadCounter();
 
-// Endpoint to trigger (increment) the Rickroll counter
-// Each GET request to /rickroll increases the counter by one and returns the new count
+// Endpoint that increments the counter
 app.get('/rickroll', (req, res) => {
   rickrollCount++;
   console.log(`Counter incremented: ${rickrollCount}`);
@@ -56,12 +55,12 @@ app.get('/rickroll', (req, res) => {
   res.send(`${rickrollCount}`);
 });
 
-// Endpoint to retrieve the current counter value without incrementing it
+// Endpoint that returns the current counter
 app.get('/counter', (req, res) => {
   res.send(`${rickrollCount}`);
 });
 
-// Optional landing page for the counter service with a custom background image
+// Default route (simple HTML page)
 app.get('/', (req, res) => {
   res.send(`
     <!DOCTYPE html>
@@ -70,7 +69,6 @@ app.get('/', (req, res) => {
       <meta charset="UTF-8">
       <title>Rickroll Counter</title>
       <style>
-        /* Styling for the landing page with a custom background image */
         body {
           font-family: Arial, sans-serif;
           text-align: center;
@@ -79,17 +77,13 @@ app.get('/', (req, res) => {
           background-size: cover;
           color: #fff;
         }
-        h1 {
-          color: #0af;
-        }
+        h1 { color: #0af; }
         a {
           color: #0af;
           text-decoration: none;
           font-size: 1.2em;
         }
-        a:hover {
-          text-decoration: underline;
-        }
+        a:hover { text-decoration: underline; }
       </style>
     </head>
     <body>
@@ -101,8 +95,7 @@ app.get('/', (req, res) => {
   `);
 });
 
-// Create an HTTPS server using the provided SSL options and the Express app,
-// and start listening on the specified port
+// Start the HTTPS server
 https.createServer(options, app).listen(port, () => {
   console.log(`Rickroll Counter Service (HTTPS) listening on port ${port}`);
 });

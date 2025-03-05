@@ -149,7 +149,7 @@ services:
       mariadb:
         condition: service_healthy
     healthcheck:
-      test:         ["CMD-SHELL", "curl -f http://localhost || exit 1"]
+      test:         ["CMD-SHELL", "curl -f http://localhost:8080 || exit 1"]
       interval:     10s
       retries:      3
       start_period: 10s
@@ -168,7 +168,7 @@ services:
     ports:
       - "3001:3000"     # Exposes the service on port 3001
     healthcheck:
-      test:         ["CMD-SHELL", "curl -f http://localhost:3000 || exit 1"]
+      test:         ["CMD-SHELL", "curl -fk https://localhost:3000 || exit 1"]
       interval:     10s
       retries:      3
       start_period: 10s
