@@ -1,34 +1,25 @@
-/* ------------------------------------------------------------------------------
-   style.css for Rickception Static Site
-   This stylesheet defines the styling for the Rickception site with a Rick-themed background,
-   responsive layout, and subtle animations.
------------------------------------------------------------------------------- */
-
-/* Reset default margins, paddings, and set box-sizing to border-box for all elements */
-* {
+/******************************************************************************
+ * Basic styling for the Rickception static site
+ ******************************************************************************/
+ * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-/* Body styling: applies a Rick-themed background image, ensures full viewport height,
-   and centers content using flexbox */
 body {
-  /* The background image is loaded from the images folder (relative to this CSS file) */
   background: url("../images/rick-bg.jpg") no-repeat center center fixed;
-  background-size: cover; /* Scale background to cover the viewport */
-  color: #fff;          /* White text color for contrast */
+  background-size: cover;
+  color: #fff;
   font-family: Arial, sans-serif;
   text-align: center;
   padding: 20px;
-  min-height: 100vh;      /* Ensure body takes at least full viewport height */
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-/* Header (h1) styling: sets font size, margin, and applies a fade-in-down animation.
-   The relative positioning and z-index ensure it appears above overlapping elements. */
 h1 {
   font-size: 2.5em;
   margin-bottom: 20px;
@@ -37,7 +28,6 @@ h1 {
   z-index: 2;
 }
 
-/* Paragraph styling: sets font size, margin, and ensures paragraphs remain above lower layers */
 p {
   font-size: 1.2em;
   margin-bottom: 20px;
@@ -45,10 +35,6 @@ p {
   z-index: 2;
 }
 
-/* Video container styling:
-   - Uses a responsive design with an aspect ratio of 4:3
-   - Limits width to 60% of the container, with a maximum width of 600px
-   - Applies a subtle box-shadow and rounded corners */
 .video-container {
   position: relative;
   width: 60%;
@@ -60,7 +46,6 @@ p {
   border-radius: 8px;
 }
 
-/* Ensure the embedded iframe fills the video container completely */
 .video-container iframe {
   position: absolute;
   top: 0;
@@ -70,7 +55,6 @@ p {
   border: none;
 }
 
-/* Footer styling: adds margin on top, smaller font size, and slight transparency */
 footer {
   margin-top: 40px;
   font-size: 0.9em;
@@ -79,27 +63,24 @@ footer {
   z-index: 2;
 }
 
-/* Link styling: sets color, removes underline, and adds a smooth transition for scaling */
 a {
   color: #0af;
   text-decoration: none;
   transition: transform 0.3s ease;
 }
 
-/* Link hover effect: slightly scales the link and underlines it on hover */
 a:hover {
   transform: scale(1.05);
   text-decoration: underline;
 }
 
-/* Keyframes for the fadeInDown animation used by the header */
 @keyframes fadeInDown {
   0% {
     opacity: 0;
-    transform: translateY(-20px); /* Start 20px above the final position */
+    transform: translateY(-20px);
   }
   100% {
     opacity: 1;
-    transform: translateY(0);     /* End at the final position */
+    transform: translateY(0);
   }
 }

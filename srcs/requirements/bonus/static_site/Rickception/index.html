@@ -2,54 +2,37 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-
-  <!-- Sets the viewport to ensure the page is rendered correctly on mobile devices -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <title>Rickception - Never Gonna Give You Up</title>
-
-  <!-- Link to the external CSS file for styling -->
   <link rel="stylesheet" href="css/style.css">
-
-  <!-- Favicon for the site -->
   <link rel="icon" href="images/favicon.ico" type="image/x-icon">
-
-  <!-- Include the JavaScript file with defer to ensure it loads after the document is parsed -->
   <script src="js/script.js" defer></script>
 </head>
 <body>
-  <!-- Main header -->
   <h1>Welcome to Rickception</h1>
-
-  <!-- Introductory paragraph -->
   <p>Rick Rolling is a virtue for the soul!</p>
 
-  <!-- Triggering activation paragraph -->
+  <!-- Link uses ${IP_ADDRESS} environment variable replaced at runtime -->
   <p>
     <a href="https://${IP_ADDRESS}:3001/" target="_blank" rel="noopener noreferrer">
       Enable roll triggering.
     </a>
   </p>
 
-  <!-- Count paragraph -->
   <p>Rickroll has been triggered: <span id="counter">0</span> times.</p>
 
-  <!-- Video container to maintain a responsive aspect ratio -->
   <div class="video-container">
-    <!-- Embedded YouTube video with autoplay and muted options -->
     <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&amp;mute=1"
             allow="autoplay; encrypted-media" allowfullscreen>
     </iframe>
   </div>
-  
-  <!-- Fallback link in case the video does not autoplay -->
+
   <p>
     <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" target="_blank" rel="noopener noreferrer">
       Click here to meet the source of this immense blessing.
     </a>
   </p>
-  
-  <!-- Footer with copyright information -->
+
   <footer>
     <p>&copy; 2025 Rickception. Never gonna give you up!</p>
   </footer>

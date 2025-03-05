@@ -1,46 +1,44 @@
-// script.js for Rickception Static Site
-// This script enhances the user experience by animating the header, paragraphs, and video container,
-// and automatically increments the Rickroll counter on each page load.
-
+/******************************************************************************
+ * JavaScript animations and counter retrieval for Rickception
+ ******************************************************************************/
 document.addEventListener('DOMContentLoaded', () => {
-  // Animate header (h1) with fade-in and zoom effect
+  // Simple fade-in effect for the header
   const header = document.querySelector('h1');
   if (header) {
-    header.style.opacity = 0;                                               // Start hidden
-    header.style.transform = 'scale(0.8)';                                  // Start slightly scaled down
-    header.style.transition = 'opacity 1s ease-out, transform 1s ease-out'; // Smooth transition for both opacity and scale
+    header.style.opacity = 0;
+    header.style.transform = 'scale(0.8)';
+    header.style.transition = 'opacity 1s ease-out, transform 1s ease-out';
     setTimeout(() => {
-      header.style.opacity = 1;                                             // Fade in to fully visible
-      header.style.transform = 'scale(1)';                                  // Scale to normal size
-    }, 500);                                                                // Delay of 500ms before starting the animation
+      header.style.opacity = 1;
+      header.style.transform = 'scale(1)';
+    }, 500);
   }
 
-  // Animate paragraphs with a staggered fade-in and slide-up effect
+  // Sequential fade-up effect for paragraph elements
   const paragraphs = document.querySelectorAll('p');
   paragraphs.forEach((p, index) => {
-    p.style.opacity = 0;                                               // Start hidden
-    p.style.transform = 'translateY(20px)';                            // Start slightly lower than final position
-    p.style.transition = 'opacity 1s ease-out, transform 1s ease-out'; // Smooth transition for both opacity and position
+    p.style.opacity = 0;
+    p.style.transform = 'translateY(20px)';
+    p.style.transition = 'opacity 1s ease-out, transform 1s ease-out';
     setTimeout(() => {
-      p.style.opacity = 1;                                             // Fade in to fully visible
-      p.style.transform = 'translateY(0)';                             // Move to the final position
-    }, 700 + index * 300);                                             // Stagger each paragraph's animation
+      p.style.opacity = 1;
+      p.style.transform = 'translateY(0)';
+    }, 700 + index * 300);
   });
 
-  // Animate the video container with fade-in and slight rotation effect
+  // Rotate-in effect for the embedded video container
   const videoContainer = document.querySelector('.video-container');
   if (videoContainer) {
-    videoContainer.style.opacity = 0;                                               // Start hidden
-    videoContainer.style.transform = 'rotate(5deg)';                                // Start with a slight rotation
-    videoContainer.style.transition = 'opacity 1s ease-out, transform 1s ease-out'; // Smooth transition for opacity and rotation
+    videoContainer.style.opacity = 0;
+    videoContainer.style.transform = 'rotate(5deg)';
+    videoContainer.style.transition = 'opacity 1s ease-out, transform 1s ease-out';
     setTimeout(() => {
-      videoContainer.style.opacity = 1;                                             // Fade in to fully visible
-      videoContainer.style.transform = 'rotate(0deg)';                              // Rotate to normal (0deg)
-    }, 1000);                                                                       // Delay of 1000ms before starting the animation
+      videoContainer.style.opacity = 1;
+      videoContainer.style.transform = 'rotate(0deg)';
+    }, 1000);
   }
 
-  // Automatically trigger the Rickroll counter on page load by calling /rickroll.
-  // This increments the counter each time the page is refreshed.
+  // Fetch a counter from an external endpoint (Node.js service)
   fetch('https://${IP_ADDRESS}:3001/rickroll?cacheBuster=' + Date.now())
     .then(response => response.text())
     .then(data => {
@@ -51,6 +49,5 @@ document.addEventListener('DOMContentLoaded', () => {
     })
     .catch(error => console.error('Error fetching counter:', error));
 
-  // Log a welcoming message in the browser console
-  console.log('Rickception loaded. Prepare to be Rickrolled!');
+  console.log('Rickception loaded successfully.');
 });
