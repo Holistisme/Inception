@@ -1,44 +1,54 @@
 #!/bin/bash
+set -euo pipefail
 
-# Enable debugging and exit immediately if a command exits with a non-zero status
-set -ex
+###############################################################################
+# Entry script for configuring and running vsftpd
+###############################################################################
 
-# Define the directory for FTP uploads
-FTP_DIR="/var/www/html/wp-content/uploads"
+FTP_DIR=${FTP_DIR:-/var/www/html/wp-content/uploads}
 
-# Update the vsftpd configuration to set the passive mode address using the FTP_PASV_ADDRESS environment variable
-sed -i "s/^pasv_address=.*/pasv_address=${FTP_PASV_ADDRESS}/" /etc/vsftpd.conf
+echo "Configuring vsftpd..."
 
-# Generate a self-signed SSL certificate if it does not already exist
-if [ ! -f /etc/ssl/private/vsftpd.pem ] || [ ! -f /etc/ssl/certs/vsftpd.pem ]; then
-    openssl req -x509 -nodes -days 365 -newkey rsa:2048             \
-      -subj "/C=FR/ST=Alsace/L=Mulhouse/O=42/OU=aheitz/CN=$DOMAIN/" \
-      -keyout /etc/ssl/private/vsftpd.pem                           \
-      -out /etc/ssl/certs/vsftpd.pem
+# Update passive address in vsftpd.conf if provided
+if [ -n "${FTP_PASV_ADDRESS:-}" ]; then
+    sed -i "s/^pasv_address=.*/pasv_address=${FTP_PASV_ADDRESS}/" /etc/vsftpd.conf
 fi
 
-# Create the FTP user if it does not exist
+if [ ! -f /etc/ssl/private/vsftpd.pem ] || [ ! -f /etc/ssl/certs/vsftpd.pem ]; then
+    echo "Generating SSL certificate for vsftpd..."
+    mkdir -p /etc/ssl/private /etc/ssl/certs
+    openssl req -x509 -nodes -days 365 -newkey rsa:2048                            \
+      -subj   "/C=FR/ST=Alsace/L=Mulhouse/O=42/OU=aheitz/CN=${DOMAIN:-localhost}/" \
+      -keyout /etc/ssl/private/vsftpd.pem                                          \
+      -out    /etc/ssl/certs/vsftpd.pem
+fi
+
+FTP_USER=${FTP_USER:-ftpuser}
+FTP_PASS=${FTP_PASS:-ftppass}
+
+# Create FTP user if it does not exist
 if ! id "$FTP_USER" >/dev/null 2>&1; then
+    echo "Creating FTP user $FTP_USER..."
     useradd -m -d "$FTP_DIR" -s /bin/bash "$FTP_USER"
 fi
 
-# Set the password for the FTP user
+# Set the user's password
 echo "$FTP_USER:$FTP_PASS" | chpasswd
 
-# Add the FTP user to the www-data group for proper permissions on the upload directory
+# Add the FTP user to the www-data group to manage shared files
 usermod -aG www-data "$FTP_USER"
 
-# Ensure the FTP directory exists, set the owner to www-data and apply directory permissions
+# Ensure the FTP directory exists and has proper permissions
 mkdir -p "$FTP_DIR"
 chown -R www-data:www-data "$FTP_DIR"
 chmod -R 775 "$FTP_DIR"
 
-# Create the empty directory required by vsftpd for chroot and set appropriate permissions
+# Create the vsftpd run directory for PID files
 mkdir -p  /var/run/vsftpd/empty
 chmod 755 /var/run/vsftpd/empty
 
-# Output the current vsftpd configuration (useful for debugging)
-cat /etc/vsftpd.conf
+echo "vsftpd configuration:"
+cat  /etc/vsftpd.conf
 
-# Execute vsftpd with the specified configuration file; this process will replace the shell process
+echo "Starting vsftpd..."
 exec /usr/sbin/vsftpd /etc/vsftpd.conf

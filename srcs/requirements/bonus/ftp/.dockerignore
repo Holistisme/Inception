@@ -1,4 +1,6 @@
-# Excludes sensitive and local configuration files:
+###############################################################################
+# Files and directories to ignore during the Docker build process
+###############################################################################
 .env
 secrets/
 *.bak
@@ -6,18 +8,15 @@ secrets/
 *.old
 *.log
 
-# Excludes files from Git:
 .git
 .gitignore
 
-# Excludes temporary and cache files:
 __pycache__/
 *.pyc
 *.pyo
 .DS_Store
 Thumbs.db
 
-# Excludes files not required for the build:
 .vscode/
 .idea/
 node_modules/
