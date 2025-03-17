@@ -8,7 +8,7 @@ LABEL maintainer="aheitz <aheitz@student.42mulhouse.fr>"
 ###############################################################################
 # Install curl, gnupg, openssl, and Node.js (v14 setup)
 ###############################################################################
-RUN apt-get update && apt-get install -y curl gnupg openssl \
+RUN apt-get update && apt-get install -y supervisor curl gnupg openssl \
     && rm -rf /var/lib/apt/lists/*
 RUN curl -fsSL https://deb.nodesource.com/setup_14.x | bash -              \
     && apt-get update && apt-get install -y --no-install-recommends nodejs \
@@ -35,4 +35,6 @@ RUN chmod +x /tools/generate_ssl.sh
 # Expose the service port (3000 by default) and define the startup command
 ###############################################################################
 EXPOSE 3000
-CMD ["sh", "-c", "/tools/generate_ssl.sh && node index.js"]
+
+COPY conf/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+CMD ["/usr/bin/supervisord", "-n"]

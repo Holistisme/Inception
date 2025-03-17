@@ -8,8 +8,8 @@ LABEL maintainer="aheitz <aheitz@student.42mulhouse.fr>"
 ###############################################################################
 # Install PHP and extensions required by Adminer, plus curl for downloading
 ###############################################################################
-RUN apt-get update && apt-get install -y                                                     \
-    php php-fpm php-mysql php-cli php-json php-mbstring php-xml php-curl php-gd php-zip curl \
+RUN apt-get update && apt-get install -y                                                                \
+    supervisor php php-fpm php-mysql php-cli php-json php-mbstring php-xml php-curl php-gd php-zip curl \
     && rm -rf /var/lib/apt/lists/*
 
 ###############################################################################
@@ -20,6 +20,8 @@ RUN mkdir -p /var/www/html && cd /var/www/html                                  
     && chmod 644 index.php
 
 ###############################################################################
-# Run a built-in PHP server on port 8080, serving files from /var/www/html
+# Run supervisor on port 8080, serving files from /var/www/html
 ###############################################################################
-CMD ["php", "-S", "0.0.0.0:8080", "-t", "/var/www/html"]
+COPY conf/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+CMD ["/usr/bin/supervisord", "-n"]

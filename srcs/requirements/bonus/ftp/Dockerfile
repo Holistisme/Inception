@@ -6,19 +6,21 @@ FROM debian:bullseye
 LABEL maintainer="aheitz <aheitz@student.42mulhouse.fr>"
 
 ###############################################################################
-# Install vsftpd, bash, and openssl
+# Install vsftpd, bash, openssl and supervisor
 ###############################################################################
 RUN apt-get update && apt-get install -y --no-install-recommends \
     vsftpd                                                       \
     bash                                                         \
     openssl                                                      \
+    supervisor                                                   \
     && rm -rf /var/lib/apt/lists/*
 
 ###############################################################################
 # Copy the vsftpd configuration file and entrypoint script
 ###############################################################################
-COPY conf/vsftpd.conf    /etc/vsftpd.conf
-COPY tools/entrypoint.sh /entrypoint.sh
+COPY conf/vsftpd.conf       /etc/vsftpd.conf
+COPY tools/entrypoint.sh    /entrypoint.sh
+COPY tools/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Ensure the entrypoint script is executable
 RUN chmod +x /entrypoint.sh

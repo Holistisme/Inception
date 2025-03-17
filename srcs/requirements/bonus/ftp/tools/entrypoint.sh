@@ -50,5 +50,5 @@ chmod 755 /var/run/vsftpd/empty
 echo "vsftpd configuration:"
 cat  /etc/vsftpd.conf
 
-echo "Starting vsftpd..."
-exec /usr/sbin/vsftpd /etc/vsftpd.conf
+echo "Starting supervisord..."
+exec /usr/bin/supervisord -n

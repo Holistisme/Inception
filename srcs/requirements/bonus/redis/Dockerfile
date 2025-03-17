@@ -20,6 +20,10 @@ COPY conf/redis.conf /etc/redis/redis.conf
 EXPOSE 6379
 
 ###############################################################################
-# Replace placeholder password in redis.conf, then start Redis with that config
+# Start Redis with the following script
 ###############################################################################
-CMD sed -i "s|\${REDIS_PASSWORD}|$REDIS_PASSWORD|" /etc/redis/redis.conf && redis-server /etc/redis/redis.conf
+COPY conf/redis.conf /etc/redis/redis.conf
+COPY entrypoint.sh   /usr/local/bin/entrypoint.sh
+RUN  chmod +x        /usr/local/bin/entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
